@@ -1,0 +1,79 @@
+<php>
+//this script only output on public/Index/index
+if(APP_NAME != 'public' || MODULE_NAME != 'Index' || ACTION_NAME != 'index'){
+return;
+}
+</php>
+<script src="http://open.web.meitu.com/sources/xiuxiu.js" type="text/javascript"></script>
+<!-- container of swf editor -->
+<div id="xiuxiu_editor"></div>
+<script>
+//append button to sendbox
+  $(function(){
+  $('.acts').append('<a class="image-block" id="xiuxiu_upload"  href="javascript:;" ><i class="image"></i>美图秀秀</a>');
+$('#xiuxiu_upload').click(function(){
+  //url receiving image data
+  var upload_url = '{:U('api/Xiuxiu/upload')}';
+  upload_picture_with_xiuxiu(function(data){
+  data = JSON.parse(data);
+  insert_xiuxiu(data.attach_id,data.url);
+  },upload_url);
+});
+  });
+
+
+//upload picture use meitu xiuxiu editor
+  function upload_picture_with_xiuxiu(callback,upload_url){
+  $('#xiuxiuEditor').css('display','block');
+  xiuxiu.onUploadResponse = function (data)
+  {
+  $('#xiuxiuEditor').css('display','none');
+  callback(data);
+  }
+  xiuxiu.onInit = function(){
+  xiuxiu.setUploadURL(upload_url);
+  xiuxiu.setUploadType(2);
+
+  }
+  
+  xiuxiu.embedSWF('xiuxiu_editor',3);
+  $('#xiuxiuEditor').css({position:'absolute','z-index':'9999999',top:0,left:0});
+  }
+
+
+ //insert picture id to the input of send form
+   function insert_xiuxiu(attach_id,url){
+  var html = '<div class="talkPop alL" id="xiuxiu_image" style="*padding-top:20px;">\
+    <div class="wrap-layer">\
+      <div class="arrow arrow-t"></div>\
+      <div class="talkPop_box">\
+	<div class="close hd"><a onclick="delete_xiuxiu()" class="ico-close" href="javascript:;" title=""></a>\
+	  <span></span></div>'
+	+
+	'<div id="xiuxiu_preview"></div></div></div></div>';
+  // 插入到body底部
+  $('body').append(html);
+  var pos = $('#xiuxiu_upload').offset();
+  $('#xiuxiu_image').css({top:(pos.top+5)+"px",left:(pos.left-5)+"px","z-index":1000});
+
+  var $sendAction = $('div[model-node="send_action"]');
+
+  if ($sendAction.find('.attach_ids').length === 0) {
+
+  $sendAction.append('<input id="attach_ids" class="attach_ids" type="hidden" name="attach_ids" feedtype="image" value="" />');
+
+  }
+  $('#attach_ids').val('|'+attach_id+'|');
+  $('#xiuxiu_preview').html('<img src="'+url+'">');
+  $('#xiuxiu_image').css({width:'auto',height:'auto'});
+  }
+
+//drop the picture when user click the close button
+function delete_xiuxiu(){
+$('#attach_ids').removeAttr('value');
+$('#xiuxiu_image').remove();
+}
+
+
+
+</script>
